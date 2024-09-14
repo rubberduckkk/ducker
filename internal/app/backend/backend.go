@@ -16,6 +16,7 @@ import (
 
 	"github.com/rubberduckkk/ducker/internal/delivery/rest"
 	"github.com/rubberduckkk/ducker/internal/infra/config"
+	"github.com/rubberduckkk/ducker/pkg/llms"
 	"github.com/rubberduckkk/ducker/pkg/mysql"
 	"github.com/rubberduckkk/ducker/pkg/safe"
 )
@@ -24,6 +25,10 @@ func Run(conf string) {
 	config.Load(conf)
 	if err := mysql.Init(config.Get().MainDB); err != nil {
 		logrus.WithError(err).Fatal("init mysql database failed")
+	}
+
+	if err := llms.Init(config.Get().LLM); err != nil {
+		logrus.WithError(err).Fatal("init llms failed")
 	}
 
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%v", config.Get().Port))

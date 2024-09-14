@@ -13,5 +13,9 @@ func SetupGin(router *gin.Engine) {
 		const tasks = "tasks"
 		v1.GET(tasks, PersonalTask().GetTasks)
 		v1.POST(tasks, PersonalTask().AddTask)
+
+		const aidocs = "aidocs"
+		v1.GET(aidocs, AIDoc().QueryDocument)
+		v1.POST(aidocs, AIDoc().AddDocument)
 	}
 }

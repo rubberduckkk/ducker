@@ -13,6 +13,7 @@ type Config struct {
 	Env    string `yaml:"env"`
 	Port   uint16 `yaml:"port"`
 	MainDB MySQL  `yaml:"main_db"`
+	LLM    LLM    `yaml:"llm"`
 }
 
 var (
