@@ -1,0 +1,101 @@
+openapi: 3.0.0
+info:
+  version: 0.0.1
+  title: Done List Backend
+  description: This provides http endpoints for done list services.
+
+servers:
+  - url: http://127.0.0.1:7879/api/v1
+    description: Local server for developing.
+
+paths:
+  /tasks:
+    get:
+      summary: Returns a list of done tasks.
+      description: Returns a list of done tasks.
+      parameters:
+        - in: query
+          required: false
+          name: batch_size
+          schema:
+            type: string
+            description: The maximum number of done tasks to get. The default number is 20.
+            default: 20
+        - in: query
+          required: false
+          name: cursor
+          schema:
+            type: string
+            description: The cursor to be used when querying for done tasks.
+        - in: query
+          required: false
+          name: order
+          schema:
+            type: string
+            description: The order for querying done tasks.
+            default: desc
+            enum:
+              - desc
+              - asc
+      responses:
+        '200':
+          description: A JSON object containing the query result.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cursor:
+                    type: string
+                  data:
+                    type: object
+                    description: Array of done task items.
+                    properties:
+                      content:
+                        type: string
+                        example: Read Gone With The Wind for 10 minutes.
+                      created_at:
+                        type: string
+                        format: date-time
+
+    post:
+      summary: Add a new done task.
+      description: Add a new done task.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  description: Done task detail.
+                  example: Learn about Swagger and write a simple demo YAML config.
+              required:
+                - content
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseBody'
+        '500':
+          description: Server failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseBody'
+components:
+  schemas:
+    ResponseBody:
+      properties:
+        code:
+          type: integer
+          description: Business response code.
+          example: 30012
+        msg:
+          type: string
+          description: Additional information.
+          example: The operation is undergoing.

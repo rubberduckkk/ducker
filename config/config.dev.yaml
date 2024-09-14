@@ -1,0 +1,4 @@
+port: 7879
+env: dev
+main_db:
+  dsn: "root:p4ssw0rd@tcp(127.0.0.1:33061)/done_list?charset=utf8mb4&timeout=5s&readTimeout=5s&writeTimeout=5s&interpolateParams=true"
