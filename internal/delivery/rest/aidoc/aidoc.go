@@ -1,4 +1,4 @@
-package rest
+package aidoc
 
 import (
 	"net/http"
@@ -6,22 +6,23 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/rubberduckkk/ducker/internal/delivery/rest"
 	"github.com/rubberduckkk/ducker/internal/infra/config"
 	"github.com/rubberduckkk/ducker/internal/infra/repository/vector/rag"
 	"github.com/rubberduckkk/ducker/internal/service/aidoc"
 	"github.com/rubberduckkk/ducker/pkg/llms"
 )
 
-type AIDocDelivery struct {
+type Delivery struct {
 	svc aidoc.Service
 }
 
 var (
-	r     *AIDocDelivery
+	r     *Delivery
 	rOnce sync.Once
 )
 
-func AIDoc() *AIDocDelivery {
+func Deliver() *Delivery {
 	rOnce.Do(func() {
 		weav := config.Get().LLM.Weaviate
 		ragRepo, err := rag.NewWeaviateRepo(
@@ -34,40 +35,40 @@ func AIDoc() *AIDocDelivery {
 			panic(err)
 		}
 		svc := aidoc.New(ragRepo, llms.Instance().OpenAI)
-		r = &AIDocDelivery{svc: svc}
+		r = &Delivery{svc: svc}
 	})
 	return r
 }
 
-func (a *AIDocDelivery) AddDocument(c *gin.Context) {
+func (a *Delivery) AddDocument(c *gin.Context) {
 	req := new(AddDocumentRequest)
 	if err := c.ShouldBind(req); err != nil {
-		reError(c, http.StatusBadRequest, 0, err)
+		rest.ReError(c, http.StatusBadRequest, 0, err)
 		return
 	}
 
 	if err := a.svc.AddDocuments(c, req.Texts); err != nil {
-		reError(c, http.StatusInternalServerError, 0, err)
+		rest.ReError(c, http.StatusInternalServerError, 0, err)
 		return
 	}
 
-	reData(c, "")
+	rest.ReData(c, "")
 }
 
-func (a *AIDocDelivery) QueryDocument(c *gin.Context) {
+func (a *Delivery) QueryDocument(c *gin.Context) {
 	req := new(QueryDocumentsRequest)
 	if err := c.ShouldBind(req); err != nil {
-		reError(c, http.StatusBadRequest, 0, err)
+		rest.ReError(c, http.StatusBadRequest, 0, err)
 		return
 	}
 
 	res, err := a.svc.QueryDocuments(c, req.Content)
 	if err != nil {
-		reError(c, http.StatusInternalServerError, 0, err)
+		rest.ReError(c, http.StatusInternalServerError, 0, err)
 		return
 	}
 
 	resp := new(QueryDocumentsResponse)
 	resp.Content = res
-	reData(c, resp)
+	rest.ReData(c, resp)
 }

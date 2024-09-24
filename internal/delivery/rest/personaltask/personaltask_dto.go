@@ -1,15 +1,16 @@
-package rest
+package personaltask
 
 import (
 	"time"
 
+	"github.com/rubberduckkk/ducker/internal/delivery/rest"
 	"github.com/rubberduckkk/ducker/internal/domain/task"
 )
 
 type GetTasksRequest struct {
-	BatchSize int   `form:"batch_size"`
-	Cursor    int64 `form:"cursor"`
-	Order     Order `form:"order" binding:"query_order"`
+	BatchSize int        `form:"batch_size"`
+	Cursor    int64      `form:"cursor"`
+	Order     rest.Order `form:"order" binding:"query_order"`
 }
 
 type GetTasksResponse struct {

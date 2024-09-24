@@ -1,4 +1,4 @@
-package rest
+package aidoc
 
 type AddDocumentRequest struct {
 	Texts []string `json:"texts"`
