@@ -6,10 +6,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/rubberduckkk/ducker/internal/delivery/rest"
 	"github.com/rubberduckkk/ducker/internal/infra/config"
 	"github.com/rubberduckkk/ducker/internal/infra/repository/vector/rag"
 	"github.com/rubberduckkk/ducker/internal/service/aidoc"
+	"github.com/rubberduckkk/ducker/pkg/ginhelper"
 	"github.com/rubberduckkk/ducker/pkg/llms"
 )
 
@@ -24,12 +24,12 @@ var (
 
 func Deliver() *Delivery {
 	rOnce.Do(func() {
-		weav := config.Get().LLM.Weaviate
-		ragRepo, err := rag.NewWeaviateRepo(
+		cfg := config.Get().LLM.RedisVector
+		ragRepo, err := rag.NewRedisRepo(
 			rag.WithEmbedder(llms.Instance().Embedder),
-			rag.WithScheme(weav.Scheme),
-			rag.WithHost(weav.Host),
-			rag.WithIndexName(weav.Index),
+			rag.WithScheme(cfg.Scheme),
+			rag.WithHost(cfg.Host),
+			rag.WithIndexName(cfg.Index),
 		)
 		if err != nil {
 			panic(err)
@@ -43,32 +43,32 @@ func Deliver() *Delivery {
 func (a *Delivery) AddDocument(c *gin.Context) {
 	req := new(AddDocumentRequest)
 	if err := c.ShouldBind(req); err != nil {
-		rest.ReError(c, http.StatusBadRequest, 0, err)
+		ginhelper.ReError(c, http.StatusBadRequest, 0, err)
 		return
 	}
 
 	if err := a.svc.AddDocuments(c, req.Texts); err != nil {
-		rest.ReError(c, http.StatusInternalServerError, 0, err)
+		ginhelper.ReError(c, http.StatusInternalServerError, 0, err)
 		return
 	}
 
-	rest.ReData(c, "")
+	ginhelper.ReData(c, "")
 }
 
 func (a *Delivery) QueryDocument(c *gin.Context) {
 	req := new(QueryDocumentsRequest)
 	if err := c.ShouldBind(req); err != nil {
-		rest.ReError(c, http.StatusBadRequest, 0, err)
+		ginhelper.ReError(c, http.StatusBadRequest, 0, err)
 		return
 	}
 
 	res, err := a.svc.QueryDocuments(c, req.Content)
 	if err != nil {
-		rest.ReError(c, http.StatusInternalServerError, 0, err)
+		ginhelper.ReError(c, http.StatusInternalServerError, 0, err)
 		return
 	}
 
 	resp := new(QueryDocumentsResponse)
 	resp.Content = res
-	rest.ReData(c, resp)
+	ginhelper.ReData(c, resp)
 }

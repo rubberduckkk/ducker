@@ -5,10 +5,10 @@ type LLM struct {
 	OpenAIModelName    string   `json:"open_ai_model_name"`
 	EmbeddingModelName string   `yaml:"embedding_model_name"`
 	VectorDBHost       string   `yaml:"vector_db_host"`
-	Weaviate           Weaviate `yaml:"weaviate"`
+	RedisVector        VectorDB `yaml:"redis_vector"`
 }
 
-type Weaviate struct {
+type VectorDB struct {
 	Scheme string `yaml:"scheme"`
 	Host   string `yaml:"host"`
 	Index  string `yaml:"index"`
