@@ -52,7 +52,7 @@ func Run(conf string) {
 	logrus.Infof("received shutdown signal. starting graceful shutdown")
 	cancel()
 	wg.Wait()
-	logrus.Infof("gracefully shut down finished")
+	logrus.Infof("graceful shutdown finished")
 }
 
 func runAPIServer(ctx context.Context, listener net.Listener) {

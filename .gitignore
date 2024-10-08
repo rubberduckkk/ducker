@@ -15,6 +15,9 @@
 *.out
 .output/
 
+# ignore local config files
+config/*dev*
+
 # Dependency directories (remove the comment below to include it)
 vendor/
 
