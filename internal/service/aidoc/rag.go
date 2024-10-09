@@ -5,15 +5,17 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/sirupsen/logrus"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/schema"
 
 	"github.com/rubberduckkk/ducker/internal/domain/rag"
+	"github.com/rubberduckkk/ducker/internal/domain/rag/valueobj"
 )
 
 type Service interface {
 	AddDocuments(ctx context.Context, texts []string) error
-	QueryDocuments(ctx context.Context, content string, opts ...QueryOption) (string, error)
+	QueryDocuments(ctx context.Context, content string, opts ...QueryOption) (*valueobj.QueryResult, error)
 }
 
 type svcImpl struct {
@@ -34,15 +36,22 @@ func (s *svcImpl) AddDocuments(ctx context.Context, texts []string) error {
 	return err
 }
 
-func (s *svcImpl) QueryDocuments(ctx context.Context, content string, opts ...QueryOption) (string, error) {
+func (s *svcImpl) QueryDocuments(ctx context.Context, content string, opts ...QueryOption) (*valueobj.QueryResult, error) {
 	param := defaultQueryParam()
 	for _, fn := range opts {
 		fn(param)
 	}
+	logrus.WithField("content", content).Infof("query docs")
 	docs, err := s.ragRepo.SimilaritySearch(ctx, content, param.NumDocuments)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
+	if len(docs) == 0 {
+		return &valueobj.QueryResult{
+			Summary: "no related documents found",
+		}, nil
+	}
+	logrus.WithField("docs", docs).Infof("similarity search")
 	docsContents := make([]string, 0, len(docs))
 	for _, doc := range docs {
 		docsContents = append(docsContents, doc.PageContent)
@@ -50,9 +59,12 @@ func (s *svcImpl) QueryDocuments(ctx context.Context, content string, opts ...Qu
 	ragQuery := fmt.Sprintf(ragTemplateStr, content, strings.Join(docsContents, "\n"))
 	result, err := llms.GenerateFromSinglePrompt(ctx, s.llmModel, ragQuery)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return result, nil
+	return &valueobj.QueryResult{
+		Summary:     result,
+		OriginalDoc: docs[0].PageContent,
+	}, nil
 }
 
 const ragTemplateStr = `
