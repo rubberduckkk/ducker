@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sirupsen/logrus"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/schema"
 
@@ -41,7 +40,6 @@ func (s *svcImpl) QueryDocuments(ctx context.Context, content string, opts ...Qu
 	for _, fn := range opts {
 		fn(param)
 	}
-	logrus.WithField("content", content).Infof("query docs")
 	docs, err := s.ragRepo.SimilaritySearch(ctx, content, param.NumDocuments)
 	if err != nil {
 		return nil, err
@@ -51,7 +49,6 @@ func (s *svcImpl) QueryDocuments(ctx context.Context, content string, opts ...Qu
 			Summary: "no related documents found",
 		}, nil
 	}
-	logrus.WithField("docs", docs).Infof("similarity search")
 	docsContents := make([]string, 0, len(docs))
 	for _, doc := range docs {
 		docsContents = append(docsContents, doc.PageContent)
