@@ -1,13 +1,9 @@
 package aidoc
 
 type AddDocumentRequest struct {
-	Texts []string `json:"texts"`
+	Texts []string `json:"texts" binding:"required"`
 }
 
 type QueryDocumentsRequest struct {
-	Content string `json:"content"`
-}
-
-type QueryDocumentsResponse struct {
-	Content string `json:"content"`
+	Content string `json:"content" binding:"required"`
 }
