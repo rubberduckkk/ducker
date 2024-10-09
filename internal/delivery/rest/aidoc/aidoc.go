@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 
 	"github.com/rubberduckkk/ducker/internal/infra/config"
 	"github.com/rubberduckkk/ducker/internal/infra/repository/vector/rag"
@@ -63,7 +62,6 @@ func (a *Delivery) QueryDocument(c *gin.Context) {
 		return
 	}
 
-	logrus.WithField("req", req).Infof("enter")
 	res, err := a.svc.QueryDocuments(c, req.Content)
 	if err != nil {
 		ginhelper.ReError(c, http.StatusInternalServerError, 0, err)
