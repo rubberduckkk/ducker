@@ -1,8 +1,6 @@
 package account
 
 import (
-	"fmt"
-
 	"github.com/rubberduckkk/ducker/internal/domain/account"
 	"github.com/rubberduckkk/ducker/internal/domain/account/entity"
 	"github.com/rubberduckkk/ducker/internal/domain/account/valueobj"
@@ -25,13 +23,8 @@ func (a *accountRepo) Create(info valueobj.AccountInfo) (*entity.Account, error)
 }
 
 func (a *accountRepo) Auth(e *entity.Account) error {
-	h, err := hash.Password(e.Password)
-	if err != nil {
-		return fmt.Errorf("gen hash failed: %w", err)
-	}
-
 	for _, pass := range a.cfg.Account.Passes {
-		if pass == h {
+		if err := hash.VerifyPassword(pass, e.Password); err == nil {
 			return nil
 		}
 	}
