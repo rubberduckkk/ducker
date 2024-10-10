@@ -11,3 +11,8 @@ cd cmd/backend/
 go build -v -o ducker-svc
 cd -
 mv cmd/backend/ducker-svc output/bin/ducker-svc
+
+cd cmd/proxy
+go build -v -o ducker-proxy
+cd -
+mv cmd/proxy/ducker-proxy output/bin/ducker-proxy
