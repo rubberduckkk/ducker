@@ -10,19 +10,47 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/cloudflare/tableflip"
 	"github.com/sirupsen/logrus"
 
 	"github.com/rubberduckkk/ducker/internal/infra/config"
 	"github.com/rubberduckkk/ducker/internal/infra/repository/file/account"
 	"github.com/rubberduckkk/ducker/internal/service/proxy"
 	"github.com/rubberduckkk/ducker/pkg/safe"
-
-	"github.com/cloudflare/tableflip"
 )
 
 func Run(conf string) {
 	config.Load(conf)
 
+	if config.IsProd() {
+		runGrace()
+		return
+	}
+
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%v", config.Get().Port))
+	if err != nil {
+		panic(fmt.Sprintf("create listener failed: %v", err))
+	}
+	defer listener.Close()
+
+	var wg sync.WaitGroup
+	ctx, cancel := context.WithCancel(context.Background())
+	wg.Add(1)
+	safe.Go(func() {
+		defer wg.Done()
+		runHTTPServer(ctx, listener)
+	})
+
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, syscall.SIGTERM, syscall.SIGINT)
+	<-sig
+	logrus.Infof("received shutdown signal. starting graceful shutdown")
+	cancel()
+	wg.Wait()
+	logrus.Infof("graceful shutdown finished")
+}
+
+func runGrace() {
 	upg, err := tableflip.New(tableflip.Options{PIDFile: "/var/run/ducker-proxy.pid"})
 	if err != nil {
 		panic(fmt.Sprintf("create tableflip Upgrader failed: %v", err))
@@ -48,11 +76,14 @@ func Run(conf string) {
 		// SIGTERM is signaled by k8s when it wants a pod to stop.
 		signal.Notify(sig, syscall.SIGTERM, syscall.SIGINT)
 		for range sig {
-			logrus.Infof("caught terminate signal, shutting down...")
+			logrus.Infof("received shutdown signal. starting graceful shutdown")
 			cancel()
 			if err = upg.Upgrade(); err != nil {
 				logrus.WithError(err).Errorf("upgrade failed")
+				return
 			}
+			logrus.Infof("tableflip upgrade success")
+			return
 		}
 	})
 
@@ -62,6 +93,7 @@ func Run(conf string) {
 
 	wg.Wait()
 	<-upg.Exit()
+	logrus.Infof("graceful shutdown finished")
 }
 
 func runHTTPServer(ctx context.Context, l net.Listener) {

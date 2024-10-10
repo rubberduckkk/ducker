@@ -7,7 +7,7 @@ import (
 )
 
 func (s *service) ProxyHTTP(w http.ResponseWriter, r *http.Request) {
-	if s.authHTTP(r) {
+	if !s.authHTTP(r) {
 		w.Header().Set("Content-Type", "application/plain")
 		w.WriteHeader(http.StatusUnauthorized)
 		_, _ = fmt.Fprint(w, "ducker-proxy: unauthorized")
