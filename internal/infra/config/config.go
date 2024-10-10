@@ -10,10 +10,11 @@ import (
 )
 
 type Config struct {
-	Env    string `yaml:"env"`
-	Port   uint16 `yaml:"port"`
-	MainDB MySQL  `yaml:"main_db"`
-	LLM    LLM    `yaml:"llm"`
+	Env     string  `yaml:"env"`
+	Port    uint16  `yaml:"port"`
+	MainDB  MySQL   `yaml:"main_db"`
+	LLM     LLM     `yaml:"llm"`
+	Account Account `yaml:"account"`
 }
 
 var (
@@ -32,12 +33,12 @@ func Load(filename string) {
 	if err = yaml.Unmarshal(buf, config); err != nil {
 		panic(fmt.Sprintf("failed to unmarshal config file: %v", err))
 	}
-	logrus.WithField("config", config).Info("loaded config")
+	logrus.Infof("loaded config %+v", config)
 }
 
-func Get() Config {
+func Get() *Config {
 	if config == nil {
-		return Config{}
+		return &Config{}
 	}
-	return *config
+	return config
 }
