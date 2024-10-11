@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -103,7 +104,7 @@ func runHTTPServer(ctx context.Context, l net.Listener) {
 	http.HandleFunc("/", svc.ProxyHTTP)
 
 	safe.Go(func() {
-		if err := server.Serve(l); err != nil {
+		if err := server.Serve(l); !errors.Is(err, http.ErrServerClosed) {
 			logrus.WithError(err).Errorf("serve http failed")
 		}
 	})
