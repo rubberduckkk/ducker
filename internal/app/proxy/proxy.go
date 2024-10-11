@@ -109,7 +109,7 @@ func runHTTPServer(ctx context.Context, l net.Listener) {
 	})
 
 	<-ctx.Done()
-	if err := server.Close(); err != nil {
+	if err := server.Shutdown(ctx); err != nil {
 		logrus.WithError(err).Errorf("close http server failed")
 	}
 }
