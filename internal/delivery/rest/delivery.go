@@ -3,6 +3,7 @@ package rest
 import (
 	"github.com/gin-gonic/gin"
 
+	"github.com/rubberduckkk/ducker/internal/delivery/rest/account"
 	"github.com/rubberduckkk/ducker/internal/delivery/rest/aidoc"
 	"github.com/rubberduckkk/ducker/internal/delivery/rest/personaltask"
 )
@@ -20,5 +21,8 @@ func SetupGin(router *gin.Engine) {
 		const aidocs = "aidocs"
 		v1.POST(aidocs+"/search", aidoc.Deliver().QueryDocument)
 		v1.POST(aidocs, aidoc.Deliver().AddDocument)
+
+		const accounts = "accounts"
+		v1.POST(accounts, account.Deliver().Auth)
 	}
 }
